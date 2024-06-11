@@ -12,6 +12,13 @@ try:
 except ImportError:
     pygame_available = False
 
+# Función para mostrar notificaciones
+def mostrar_notificacion(mensaje):
+    notif_win = tk.Toplevel(root)
+    notif_win.title("Notificación")
+    tk.Label(notif_win, text=mensaje).pack()
+    tk.Button(notif_win, text="Cerrar", command=notif_win.destroy).pack()
+
 # Funciones básicas para las "aplicaciones"
 def abrir_calculadora():
     calc_win = tk.Toplevel(root)
@@ -54,7 +61,31 @@ def abrir_editor_texto():
                 file.write(text_area.get(1.0, tk.END))
             messagebox.showinfo("Guardado", f"Archivo guardado en {archivo}")
 
+    def buscar_texto():
+        buscar_win = tk.Toplevel(editor_win)
+        buscar_win.title("Buscar Texto")
+
+        def buscar():
+            text_area.tag_remove("highlight", "1.0", tk.END)
+            texto = entry_buscar.get()
+            if texto:
+                start_pos = "1.0"
+                while True:
+                    start_pos = text_area.search(texto, start_pos, stopindex=tk.END)
+                    if not start_pos:
+                        break
+                    end_pos = f"{start_pos}+{len(texto)}c"
+                    text_area.tag_add("highlight", start_pos, end_pos)
+                    start_pos = end_pos
+                text_area.tag_config("highlight", background="yellow")
+
+        tk.Label(buscar_win, text="Buscar:").grid(row=0, column=0)
+        entry_buscar = tk.Entry(buscar_win)
+        entry_buscar.grid(row=0, column=1)
+        tk.Button(buscar_win, text="Buscar", command=buscar).grid(row=1, columnspan=2)
+
     tk.Button(editor_win, text="Guardar como", command=guardar_como).pack()
+    tk.Button(editor_win, text="Buscar texto", command=buscar_texto).pack()
 
 def abrir_navegador_archivos():
     navegador_win = tk.Toplevel(root)
@@ -184,8 +215,39 @@ def abrir_ajustes():
     tk.Label(ajustes_win, text="Autor: ManuLogicSystems").pack()
     tk.Label(ajustes_win, text="Versión: alpha 1.01").pack()
 
-# Ventana principal del "sistema operativo"
+def abrir_gestor_tareas():
+    gestor_tareas_win = tk.Toplevel(root)
+    gestor_tareas_win.title("Gestor de Tareas")
+
+    for window in root.winfo_children():
+        if isinstance(window, tk.Toplevel):
+            tk.Label(gestor_tareas_win, text=window.title()).pack()
+
+# Función para iniciar sesión
+def iniciar_sesion():
+    if entry_usuario.get() == "usuario" and entry_contrasena.get() == "contrasena":
+        login_win.destroy()
+        root.deiconify()
+    else:
+        messagebox.showerror("Error de inicio de sesión", "Usuario o contraseña incorrectos")
+
+# Ventana de inicio de sesión
 root = tk.Tk()
+root.withdraw()  # Ocultar la ventana principal inicialmente
+login_win = tk.Toplevel(root)
+login_win.title("Iniciar Sesión")
+
+tk.Label(login_win, text="Usuario:").grid(row=0, column=0)
+entry_usuario = tk.Entry(login_win)
+entry_usuario.grid(row=0, column=1)
+
+tk.Label(login_win, text="Contraseña:").grid(row=1, column=0)
+entry_contrasena = tk.Entry(login_win, show="*")
+entry_contrasena.grid(row=1, column=1)
+
+tk.Button(login_win, text="Iniciar Sesión", command=iniciar_sesion).grid(row=2, columnspan=2)
+
+# Ventana principal del "sistema operativo"
 root.title("Mini Sistema Operativo")
 root.geometry("800x600")
 
@@ -215,6 +277,7 @@ tk.Button(barra_tareas, text="Navegador de archivos", command=abrir_navegador_ar
 tk.Button(barra_tareas, text="Navegador web", command=abrir_navegador_web).pack(side=tk.LEFT)
 tk.Button(barra_tareas, text="Reproductor de música", command=abrir_reproductor_musica).pack(side=tk.LEFT)
 tk.Button(barra_tareas, text="Ajustes", command=abrir_ajustes).pack(side=tk.LEFT)
+tk.Button(barra_tareas, text="Gestor de Tareas", command=abrir_gestor_tareas).pack(side=tk.LEFT)
 
 # Iniciar el bucle principal de la interfaz gráfica
 root.mainloop()
